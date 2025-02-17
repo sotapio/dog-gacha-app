@@ -15,11 +15,19 @@
         body {
             text-align: center;
             font-family: Arial, sans-serif;
+            background-image: url('/static/back.jpg');
+            /* ドッグランの画像 */
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: auto;
         }
 
         h2 {
             font-size: 3rem;
             margin-top: 20px;
+            color: white;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
         }
 
         img {
@@ -39,6 +47,8 @@
         #rare-message {
             margin: 0;
             padding: 0;
+            color: red;
+            display: none;
         }
 
         #loading-img {
@@ -54,6 +64,32 @@
         #history img {
             width: 100px;
             margin: 5px;
+        }
+
+        /* 草のアニメーション */
+        .grass {
+            z-index: -1;
+            position: absolute;
+            bottom: 0;
+            width: 3px;
+            height: 50px;
+            background-color: #4CAF50;
+            border-radius: 0 0 5px 5px;
+            animation: sway 3s infinite ease-in-out;
+        }
+
+        @keyframes sway {
+            0% {
+                transform: translateX(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateX(-5px) rotate(10deg);
+            }
+
+            100% {
+                transform: translateX(5px) rotate(-10deg);
+            }
         }
     </style>
 </head>
@@ -72,12 +108,13 @@
     <button id="breed-btn">指定した犬種を表示</button>
 
     <br><br>
-    
-    <h3 id="rare-message" style="color: red; display: none;">レア！柴犬を引きました！</h3>
 
-    <img id="loading-img" src="/static/loading.gif" alt="loading..."
-        style="display: none;">
-    <img id="dog-img" src="/static/loading.gif" alt="犬の画像">
+    <h3 id="rare-message">レア！柴犬を引きました！</h3>
+
+    <img id="loading-img" src="/static/loading.gif" alt="loading..." style="display: none;">
+    <div style="height: 300; width: 300;">
+        <img id="dog-img" src="/static/loading.gif" alt="犬の画像">
+    </div>
 
     <h3>ガチャ履歴</h3>
     <div id="history"></div>
@@ -85,6 +122,18 @@
     <script>
         $(document).ready(function () {
             let history = [];  // 履歴を保存する配列
+
+            // 履歴を更新する関数
+            function updateHistory() {
+                $("#history").empty();  // 履歴をクリア
+
+                // 履歴を表示
+                history.forEach(function (dogImage, index) {
+                    if (index < 5) {  // 最大5件まで表示
+                        $("#history").append('<img src="' + dogImage + '" alt="dog">');
+                    }
+                });
+            }
 
             // ランダムな犬を取得
             $("#random-btn").click(function () {
@@ -101,6 +150,12 @@
 
                         // 履歴に追加
                         history.push(response.message);
+
+                        // 履歴が6件目になったら1件目を削除
+                        if (history.length > 5) {
+                            history.shift();  // 1件目を削除
+                        }
+
                         updateHistory();
 
                         // 柴犬を引いた場合
@@ -108,24 +163,20 @@
                         if (breed === "shiba") {
                             $("#rare-message").show();  // 「レア！」メッセージを表示
                         }
+
+                        // 草のアニメーション
+                        let grassCount = 5;  // 草の数
+                        for (let i = 0; i < grassCount; i++) {
+                            let grass = $('<div class="grass"></div>');
+                            grass.css('left', Math.random() * window.innerWidth + 'px');
+                            $('body').append(grass);
+                        }
                     },
                     error: function () {
                         alert("エラーが発生しました。");
                     }
                 });
             });
-
-            // 履歴を更新する関数
-            function updateHistory() {
-                $("#history").empty();  // 履歴をクリア
-
-                // 履歴を表示
-                history.forEach(function (dogImage, index) {
-                    if (index < 5) {  // 最大5件まで表示
-                        $("#history").append('<img src="' + dogImage + '" alt="dog">');
-                    }
-                });
-            }
 
             // 指定した犬種の犬を取得
             $("#breed-btn").click(function () {
@@ -143,12 +194,26 @@
 
                         // 履歴に追加
                         history.push(response.message);
+
+                        // 履歴が6件目になったら1件目を削除
+                        if (history.length > 5) {
+                            history.shift();  // 1件目を削除
+                        }
+
                         updateHistory();
 
                         // 柴犬を引いた場合
                         let breed = response.message.split("/")[4];  // URLから犬種を取得
                         if (breed === "shiba") {
                             $("#rare-message").show();  // 「レア！」メッセージを表示
+                        }
+
+                        // 草のアニメーション
+                        let grassCount = 5;  // 草の数
+                        for (let i = 0; i < grassCount; i++) {
+                            let grass = $('<div class="grass"></div>');
+                            grass.css('left', Math.random() * window.innerWidth + 'px');
+                            $('body').append(grass);
                         }
                     },
                     error: function () {
