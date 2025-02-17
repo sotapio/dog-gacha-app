@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐶 犬ガチャ 🎲</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        h2 {
+            font-size: 3rem;
+            margin-top: 20px;
+        }
+
+        img {
+            width: 300px;
+            height: auto;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #rare-message {
+            margin: 0;
+            padding: 0;
+        }
+
+        #loading-img {
+            width: 100px;
+        }
+
+        #history {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        #history img {
+            width: 100px;
+            margin: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>🐶 犬ガチャ 🎲</h2>
+    <button id="random-btn">ランダムな犬を表示</button>
+
+    <select id="breed-select">
+        <option value="shiba">柴犬</option>
+        <option value="labrador">ラブラドール</option>
+        <option value="pug">パグ</option>
+        <option value="bulldog">ブルドッグ</option>
+    </select>
+    <button id="breed-btn">指定した犬種を表示</button>
+
+    <br><br>
+    
+    <h3 id="rare-message" style="color: red; display: none;">レア！柴犬を引きました！</h3>
+
+    <img id="loading-img" src="/static/loading.gif" alt="loading..."
+        style="display: none;">
+    <img id="dog-img" src="/static/loading.gif" alt="犬の画像">
+
+    <h3>ガチャ履歴</h3>
+    <div id="history"></div>
+
+    <script>
+        $(document).ready(function () {
+            let history = [];  // 履歴を保存する配列
+
+            // ランダムな犬を取得
+            $("#random-btn").click(function () {
+                $("#loading-img").show();  // アニメーションを表示
+                $("#dog-img").hide();      // 画像を隠す
+                $("#rare-message").hide(); // 「レア！」メッセージを非表示
+
+                $.ajax({
+                    url: "/random-dog",
+                    type: "GET",
+                    success: function (response) {
+                        $("#loading-img").hide();  // アニメーションを非表示
+                        $("#dog-img").attr("src", response.message).fadeIn(1000);  // 画像をフェードインで表示
+
+                        // 履歴に追加
+                        history.push(response.message);
+                        updateHistory();
+
+                        // 柴犬を引いた場合
+                        let breed = response.message.split("/")[4];  // URLから犬種を取得
+                        if (breed === "shiba") {
+                            $("#rare-message").show();  // 「レア！」メッセージを表示
+                        }
+                    },
+                    error: function () {
+                        alert("エラーが発生しました。");
+                    }
+                });
+            });
+
+            // 履歴を更新する関数
+            function updateHistory() {
+                $("#history").empty();  // 履歴をクリア
+
+                // 履歴を表示
+                history.forEach(function (dogImage, index) {
+                    if (index < 5) {  // 最大5件まで表示
+                        $("#history").append('<img src="' + dogImage + '" alt="dog">');
+                    }
+                });
+            }
+
+            // 指定した犬種の犬を取得
+            $("#breed-btn").click(function () {
+                let breed = $("#breed-select").val();
+                $("#loading-img").show();  // アニメーションを表示
+                $("#dog-img").hide();      // 画像を隠す
+                $("#rare-message").hide(); // 「レア！」メッセージを非表示
+
+                $.ajax({
+                    url: "/random-dog/" + breed,
+                    type: "GET",
+                    success: function (response) {
+                        $("#loading-img").hide();  // アニメーションを非表示
+                        $("#dog-img").attr("src", response.message).fadeIn(1000);  // 画像をフェードインで表示
+
+                        // 履歴に追加
+                        history.push(response.message);
+                        updateHistory();
+
+                        // 柴犬を引いた場合
+                        let breed = response.message.split("/")[4];  // URLから犬種を取得
+                        if (breed === "shiba") {
+                            $("#rare-message").show();  // 「レア！」メッセージを表示
+                        }
+                    },
+                    error: function () {
+                        alert("犬種が見つかりません。");
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>
